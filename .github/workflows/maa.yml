@@ -37,8 +37,8 @@ jobs:
         id: container-restore
         with:
           path: |
-            ~/container.tar
-            ~/data.tar.bz2
+            ~/ark.tar
+            ~/data.tar
           key: container
 
       - name: Setup Debug Session
@@ -51,14 +51,14 @@ jobs:
         run: |
           sudo apt install linux-modules-extra-`uname -r` -y
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
-          if [[ -f ~/container.tar ]] && [[ -f ~/data.tar.bz2 ]];then
-            docker load -i ~/container.tar
-            rm ~/container.tar
+          if [[ -f ~/ark.tar ]] && [[ -f ~/data.tar ]];then
+            docker load -i ~/ark.tar
+            rm ~/ark.tar
             export IMAGETAG=ark
             echo "Loaded container"
             cd ~
-            sudo tar -xvjf ~/data.tar.bz2
-            sudo rm ~/data.tar.bz2
+            sudo tar -xf ~/data.tar
+            sudo rm ~/data.tar
           fi
           cd ${{ github.workspace }}
           docker compose up -d
@@ -133,10 +133,10 @@ jobs:
           docker commit redroid ark
           docker rm redroid
           docker rmi redroid/redroid:11.0.0-240527 2>/dev/null || :
-          docker save ark -o ~/container.tar
+          docker save ark -o ~/ark.tar
           docker rmi ark
           cd ~
-          sudo tar -cvjpf ~/data.tar.bz2 data
+          sudo tar -cpf ~/data.tar data
           sudo rm -rf data
 
       - name: Delete cache
@@ -152,6 +152,6 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ~/container.tar
-            ~/data.tar.bz2
+            ~/ark.tar
+            ~/data.tar
           key: container
