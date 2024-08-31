@@ -3,6 +3,7 @@ import requests
 import toml
 import os
 import sys
+import pathlib
 
 url = os.getenv("ONEBOT_URL")
 qqid=int(os.getenv("QQID"))
@@ -24,10 +25,10 @@ if __name__ == '__main__':
         if 'params' in i:
             if 'client_type' in i['params']:
                 i['params']['client_type'] = client_type
-    with open('~/.config/maa/tasks/daily.toml', 'w') as f:
+    with open(str(pathlib.Path.home())+'/.config/maa/tasks/daily.toml', 'w') as f:
         toml.dump(config, f)
 
-    process = subprocess.Popen(sys.argv[1:], shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen("maa run daily", shell=True, stdout=subprocess.PIPE)
     output, error = process.communicate()
 
     msg = ""

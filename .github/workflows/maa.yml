@@ -121,7 +121,7 @@ jobs:
           QQID: ${{ secrets.QQID }}
         run: |
           pip3 install requests toml
-          python3 run.py maa run daily
+          python3 run.py
 
       - name: Export container
         run: |
