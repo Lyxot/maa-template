@@ -38,7 +38,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh extension install actions/gh-actions-cache
-          echo "key=$(gh actions-cache list --sort created-at --key redroid --limit 1 | cut -f 1)" >> "$GITHUB_OUTPUT"
+          export key=$(gh actions-cache list --sort created-at --key redroid --limit 1 | cut -f 1)
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+          echo $key
 
       - name: Restore container
         if: steps.cache-key.outputs.key != ''
@@ -83,7 +85,8 @@ jobs:
               if [[ $i -gt 60 ]];then
                 docker compose down
                 docker compose up -d
-                i=0
+                let i=0
+                echo "Restart container"
               fi
               if [[ $j -gt 5 ]];then
                 echo "Failed to start container"
@@ -145,7 +148,7 @@ jobs:
         id: run-maa
         if: ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true'
         env:
-          MAA_LOG: info
+          MAA_LOG: debug
           ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
           QQID: ${{ secrets.QQID }}
         run: |
@@ -153,13 +156,14 @@ jobs:
           python3 run.py
 
       - name: Send message
-        if: env.SEND_MSG == 'true'
+        if:  ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true' && env.SEND_MSG == 'true'
         env:
           ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
           QQID: ${{ secrets.QQID }}
         run: |
           pip3 install requests
           python3 send_msg.py
+          cat msg
 
       - name: Export container
         run: |
