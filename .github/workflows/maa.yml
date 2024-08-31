@@ -123,14 +123,24 @@ jobs:
           done
 
       - name: Run MAA
+        id: run-maa
         if: ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true'
         env:
           MAA_LOG: info
           ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
           QQID: ${{ secrets.QQID }}
         run: |
-          pip3 install requests toml
+          pip3 install toml
           python3 run.py
+
+      - name: Send message
+        if: env.SEND_MSG == 'true'
+        env:
+          ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
+          QQID: ${{ secrets.QQID }}
+        run: |
+          pip3 install requests
+          python3 send_msg.py
 
       - name: Export container
         run: |
