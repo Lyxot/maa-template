@@ -1,0 +1,6 @@
+[connection]
+address = "127.0.0.1:5555"
+
+[instance_options]
+touch_mode = "ADB"
+kill_adb_on_exit = false

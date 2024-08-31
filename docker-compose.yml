@@ -1,0 +1,14 @@
+version: '3'
+services:
+  redroid:
+    stdin_open: true
+    tty: true
+    privileged: true
+    volumes:
+      - ~/data:/data
+    ports:
+      - 5555:5555
+    command:
+      - androidboot.use_memfd=true
+    container_name: redroid
+    image: ${IMAGETAG:-redroid/redroid:11.0.0-240527}
