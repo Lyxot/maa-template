@@ -58,7 +58,7 @@ jobs:
 
       - name: Setup redroid
         run: |
-          sudo apt install linux-modules-extra-`uname -r` -y
+          sudo apt install linux-modules-extra-`uname -r` adb -y
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
           if [[ -f ~/ark.tar ]] && [[ -f ~/data.tar ]];then
             docker load -i ~/ark.tar
@@ -71,6 +71,26 @@ jobs:
           fi
           cd ${{ github.workspace }}
           docker compose up -d
+          declare -i i=0
+          declare -i j=0
+          while true;do
+            adb kill-server
+            adb connect 127.0.0.1:5555 2>/dev/null || :
+            if [[ $(adb -s 127.0.0.1:5555 shell getprop sys.boot_completed 2>/dev/null || :) == "1" ]];then
+              break
+            else
+              let i=i+1
+              if [[ $i -gt 60 ]];then
+                docker compose down
+                docker compose up -d
+                i=0
+              fi
+              if [[ $j -gt 5 ]];then
+                echo "Failed to start container"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Setup Frp
         if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true' || github.event_name != 'schedule'
@@ -85,7 +105,6 @@ jobs:
 
       - name: Install MAA
         run: |
-          sudo apt install adb -y
           wget https://github.com/MaaAssistantArknights/maa-cli/releases/latest/download/maa_cli-x86_64-unknown-linux-gnu.tar.gz
           tar -vzxf maa_cli-x86_64-unknown-linux-gnu.tar.gz
           mv maa_cli-x86_64-unknown-linux-gnu/maa /usr/local/bin
