@@ -2,7 +2,6 @@ import subprocess
 import requests
 import toml
 import os
-import sys
 import pathlib
 
 url = os.getenv("ONEBOT_URL")
@@ -31,17 +30,28 @@ if __name__ == '__main__':
     process = subprocess.Popen("maa run daily", shell=True, stdout=subprocess.PIPE)
     output, error = process.communicate()
 
-    msg = ""
+    log = ""
+    summary = ""
     flag_summary = False
     for line in output.splitlines():
         line = line.decode('utf-8')
+        if flag_summary:
+            summary += line + "\n"
         if "Summary" in line:
             flag_summary = True
-        if flag_summary:
-            msg += line + "\n"
         print(line)
-
+        log += line + "\n"
     process.kill()
 
+    summary_md = "# Summary\n" + summary
+    summary_md += "\n\n# Log\n```\n" + log + "```\n"
+    os.system('echo "' + summary_md + '" > "$GITHUB_STEP_SUMMARY"')
+
     if flag_send:
-        send_msg(qqid, msg)
+        summary_list = summary.splitlines()
+        summary_msg = ""
+        for i in range(len(summary_list)):
+            line = summary_list[i]
+            if line.count('-') > len(line)*0.75:
+                summary_msg += summary_list[i+1] + "\n"
+        send_msg(qqid, summary_msg)
