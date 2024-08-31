@@ -39,7 +39,7 @@ jobs:
           path: |
             ~/ark.tar
             ~/data.tar
-          key: container
+          key: redroid
 
       - name: Setup Debug Session
         if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true'
@@ -114,7 +114,7 @@ jobs:
           done
 
       - name: Run MAA
-        if: github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true'
+        if: ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true'
         env:
           MAA_LOG: info
           ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
@@ -140,7 +140,6 @@ jobs:
           sudo rm -rf data
 
       - name: Delete cache
-        if: steps.container-restore.outputs.cache-hit == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -154,4 +153,4 @@ jobs:
           path: |
             ~/ark.tar
             ~/data.tar
-          key: container
+          key: redroid
