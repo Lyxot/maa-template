@@ -32,14 +32,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Query cache key
+        id: cache-key
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          echo "key=$(gh actions-cache list --sort created-at --key redroid --limit 1 | cut -f 1)" >> "$GITHUB_OUTPUT"
+
       - name: Restore container
+        if: steps.cache-key.outputs.key != ''
         uses: actions/cache/restore@v4
         id: container-restore
         with:
           path: |
             ~/ark.tar
             ~/data.tar
-          key: redroid
+          key: ${{ steps.cache-key.outputs.key }}
 
       - name: Setup Debug Session
         if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true'
@@ -139,18 +148,16 @@ jobs:
           sudo tar -cpf ~/data.tar data
           sudo rm -rf data
 
-      - name: Delete cache
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate cache key
         run: |
-          gh extension install actions/gh-actions-cache
-          gh actions-cache delete "container" --confirm
+          du ~/ark.tar | cut -f 1 > ark.tar.size
+          du ~/data.tar | cut -f 1 > data.tar.size
 
-      - name: upload container
+      - name: Upload container
+        continue-on-error: true
         uses: actions/cache/save@v4
         with:
           path: |
             ~/ark.tar
             ~/data.tar
-          key: redroid
+          key: redroid-${{ hashFiles('ark.tar.size', 'data.tar.size') }}
