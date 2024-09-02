@@ -9,6 +9,20 @@ services:
     ports:
       - 5555:5555
     command:
+      - androidboot.redroid_fps=30
       - androidboot.use_memfd=true
+      - androidboot.hardware=mt6891
+      - ro.boot.hwc=GLOBAL
+      - ro.ril.oem.imei=865948069902280
+      - ro.ril.oem.imei1=865948069902280
+      - ro.ril.oem.imei2=865948069902281
+      - ro.ril.miui.imei0=865948069902281
+      - ro.product.manufacturer=Xiaomi
+      - ro.build.product=zeus
+      - ro.product.cpu.abi=x86_64
+      - ro.product.cpu.abilist=x86_64,x86
+      - ro.product.cpu.abilist32=x86
+      - ro.product.cpu.abilist64=x86_64
+      - ro.config.low_ram=true
     container_name: redroid
-    image: ${IMAGETAG:-redroid/redroid:11.0.0-240527}
+    image: ${IMAGETAG:-redroid/redroid:11.0.0-latest}

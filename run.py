@@ -16,7 +16,6 @@ with open(str(pathlib.Path.home())+'/.config/maa/tasks/daily.toml', 'w') as f:
 process = subprocess.Popen("maa run daily", shell=True, stdout=subprocess.PIPE)
 output, error = process.communicate()
 
-log = ""
 summary = ""
 flag_summary = False
 for line in output.splitlines():
@@ -26,12 +25,7 @@ for line in output.splitlines():
     if "Summary" in line:
         flag_summary = True
     print(line)
-    log += line + "\n"
 process.kill()
-
-summary_md = "# Summary\n" + summary
-summary_md += "\n\n# Log\n```\n" + log + "```\n"
-os.system('echo "' + summary_md + '" > "$GITHUB_STEP_SUMMARY"')
 
 summary_list = summary.splitlines()
 summary_msg = ""
@@ -39,5 +33,11 @@ for i in range(len(summary_list)):
     line = summary_list[i]
     if line.count('-') > len(line)*0.75:
         summary_msg += summary_list[i+1] + "\n"
+
+summary_md = "# Summary\n```\n" + summary[summary.find('\n'):] + "\n```"
+
+with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f :
+    print(summary_md, file=f)
+
 with open('msg', 'w') as f:
     f.write(summary_msg)

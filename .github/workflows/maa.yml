@@ -30,6 +30,13 @@ jobs:
     name: MAA
     runs-on: ubuntu-22.04
     steps:
+      - name: enable KVM for linux runners
+        if: runner.os == 'Linux'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - uses: actions/checkout@v4
 
       - name: Query cache key
@@ -38,12 +45,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh extension install actions/gh-actions-cache
-          export key=$(gh actions-cache list --sort created-at --key redroid --limit 1 | cut -f 1)
-          echo "key=$key" >> "$GITHUB_OUTPUT"
-          echo $key
+          echo "key=$(gh actions-cache list --sort created-at --key redroid --limit 1 | cut -f 1)" | tee -a $GITHUB_OUTPUT
 
       - name: Restore container
-        if: steps.cache-key.outputs.key != ''
+        if: steps.cache-key.outputs.key != '' && github.event.inputs.manual_update != 'true'
         uses: actions/cache/restore@v4
         id: container-restore
         with:
@@ -174,7 +179,7 @@ jobs:
           docker stop redroid
           docker commit redroid ark
           docker rm redroid
-          docker rmi redroid/redroid:11.0.0-240527 2>/dev/null || :
+          docker rmi redroid/redroid:11.0.0-latest 2>/dev/null || :
           docker save ark -o ~/ark.tar
           docker rmi ark
           cd ~
@@ -182,9 +187,7 @@ jobs:
           sudo rm -rf data
 
       - name: Generate cache key
-        run: |
-          du ~/ark.tar | cut -f 1 > ark.tar.size
-          du ~/data.tar | cut -f 1 > data.tar.size
+        run: du ~/ark.tar ~/data.tar | cut -f 1 | tee container.size
 
       - name: Upload container
         continue-on-error: true
@@ -193,4 +196,4 @@ jobs:
           path: |
             ~/ark.tar
             ~/data.tar
-          key: redroid-${{ hashFiles('ark.tar.size', 'data.tar.size') }}
+          key: redroid-${{ hashFiles('container.size') }}
