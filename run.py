@@ -13,7 +13,7 @@ for i in config['tasks']:
 with open(str(pathlib.Path.home())+'/.config/maa/tasks/daily.toml', 'w') as f:
     toml.dump(config, f)
 
-process = subprocess.Popen("maa run daily", shell=True, stdout=subprocess.PIPE)
+process = subprocess.Popen("maa run daily --log-file=asst.log", shell=True, stdout=subprocess.PIPE)
 output, error = process.communicate()
 
 summary = ""

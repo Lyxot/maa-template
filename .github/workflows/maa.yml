@@ -13,6 +13,11 @@ on:
         required: false
         default: false
         type: boolean
+      enable_debug:
+        description: 'Enable debug session'
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: '0 8,20 * * *'
 
@@ -21,22 +26,11 @@ env:
   CLIENT_TYPE: Official
   SEND_MSG: true
 
-permissions:
-  contents: read
-  actions: write
-
 jobs:
   maa:
     name: MAA
     runs-on: ubuntu-22.04
     steps:
-      - name: enable KVM for linux runners
-        if: runner.os == 'Linux'
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
       - uses: actions/checkout@v4
 
       - name: Query cache key
@@ -58,7 +52,7 @@ jobs:
           key: ${{ steps.cache-key.outputs.key }}
 
       - name: Setup Debug Session
-        if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true'
+        if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true' || github.event.inputs.enable_debug == 'true'
         uses: mxschmitt/action-tmate@v3
         with:
           detached: true
@@ -150,12 +144,9 @@ jobs:
           done
 
       - name: Run MAA
-        id: run-maa
         if: ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true'
         env:
           MAA_LOG: debug
-          ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
-          QQID: ${{ secrets.QQID }}
         run: |
           pip3 install toml
           python3 run.py
@@ -169,6 +160,14 @@ jobs:
           pip3 install requests
           python3 send_msg.py
           cat msg
+
+      - name: Upload log
+        uses: actions/upload-artifact@v4
+        if:  always()
+        with:
+          name: log
+          path: asst.log
+          if-no-files-found: ignore
 
       - name: Export container
         run: |
