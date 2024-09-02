@@ -13,20 +13,25 @@ for i in config['tasks']:
 with open(str(pathlib.Path.home())+'/.config/maa/tasks/daily.toml', 'w') as f:
     toml.dump(config, f)
 
-process = subprocess.Popen("maa run daily --log-file=asst.log", shell=True, stdout=subprocess.PIPE)
+log = ""
+process = subprocess.Popen("maa run daily", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+flag_trace = False
+with process.stderr:
+    for line in process.stderr:
+        log += line
+        if '[' in line and ']' in line:
+            if 'TRACE' in line[line.find('[')+1:line.find(']')]:
+                flag_trace = True
+            else:
+                flag_trace = False
+        if not flag_trace:
+            os.system('echo "' + line + '"')
+process.wait()
 output, error = process.communicate()
-
-summary = ""
-flag_summary = False
-for line in output.splitlines():
-    line = line.decode('utf-8')
-    if flag_summary:
-        summary += line + "\n"
-    if "Summary" in line:
-        flag_summary = True
-    print(line)
 process.kill()
 
+print(output)
+summary = output[output.find('\n')+1:]
 summary_list = summary.splitlines()
 summary_msg = ""
 for i in range(len(summary_list)):
@@ -34,10 +39,13 @@ for i in range(len(summary_list)):
     if line.count('-') > len(line)*0.75:
         summary_msg += summary_list[i+1] + "\n"
 
-summary_md = "# Summary\n```\n" + summary[summary.find('\n'):] + "\n```"
+step_summary = "# Summary\n```\n" + summary[summary.find('\n')+1:] + "```\n# Log\n```\n" + log + "```\n"
 
 with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f :
-    print(summary_md, file=f)
+    print(step_summary, file=f)
+
+with open('asst.log', 'w') as f:
+    f.write(log)
 
 with open('msg', 'w') as f:
     f.write(summary_msg)

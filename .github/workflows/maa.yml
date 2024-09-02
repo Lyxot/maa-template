@@ -81,10 +81,11 @@ jobs:
               break
             else
               let i=i+1
-              if [[ $i -gt 60 ]];then
+              if [[ $i -gt 10 ]];then
                 docker compose down
                 docker compose up -d
-                let i=0
+                i=0
+                let j=j+1
                 echo "Restart container"
               fi
               if [[ $j -gt 5 ]];then
@@ -146,7 +147,7 @@ jobs:
       - name: Run MAA
         if: ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true'
         env:
-          MAA_LOG: debug
+          MAA_LOG: trace
         run: |
           sudo apt install python3-toml -y
           python3 run.py
