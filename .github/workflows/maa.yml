@@ -29,7 +29,7 @@ env:
 jobs:
   maa:
     name: MAA
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: Install game
         run: |
-          pip3 install wget
+          sudo apt install python3-requests -y
           python3 download.py ${{ env.CLIENT_TYPE }}
           adb kill-server
           adb connect 127.0.0.1:5555
@@ -148,7 +148,7 @@ jobs:
         env:
           MAA_LOG: debug
         run: |
-          pip3 install toml
+          sudo apt install python3-toml -y
           python3 run.py
 
       - name: Send message
@@ -157,7 +157,6 @@ jobs:
           ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
           QQID: ${{ secrets.QQID }}
         run: |
-          pip3 install requests
           python3 send_msg.py
           cat msg
 

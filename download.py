@@ -1,7 +1,7 @@
 import requests
 import json
 import sys
-import wget
+import os
 
 def official():
     url = 'https://ak.hypergryph.com/downloads/android_lastest'
@@ -22,4 +22,4 @@ if __name__ == '__main__':
     elif client_type == 'Bilibili':
         link = bili()
     print(link)
-    wget.download(link, 'arknights.apk')
+    os.system('wget ' + link + ' -O arknights.apk --quiet')
