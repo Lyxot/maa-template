@@ -8,7 +8,7 @@ with open('msg', 'r') as f:
     data = {
         "message_type": "private",
         "user_id": qqid,
-        "message": f.read()
+        "message": f.read().strip("\n")
     }
     response = requests.post(url+'/send_msg', json=data)
     print(response.json())
