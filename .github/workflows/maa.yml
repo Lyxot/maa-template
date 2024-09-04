@@ -19,11 +19,14 @@ on:
         default: false
         type: boolean
   schedule:
+    # 定时运行，按照UTC时区配置，示例为每天4点和16点运行
     - cron: '0 8,20 * * *'
 
 env:
   TZ: Asia/Shanghai
+  # 客户端版本
   CLIENT_TYPE: Official
+  # 是否在结束后发送简报到QQ
   SEND_MSG: true
 
 jobs:
