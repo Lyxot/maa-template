@@ -30,6 +30,15 @@ type = "Infrast"
 params = { mode = 0, facility = ["Dorm", "Office", "Mfg", "Trade", "Control", "Power", "Reception"], drones = "Money", threshold = 0.3, replenish = true, dorm_notstationed_enabled = true }
 
 [[tasks]]
+name = "关闭游戏"
+type = "CloseDown"
+
+[[tasks]]
+name = "开始唤醒"
+type = "StartUp"
+params = { client_type = "Official", start_game_enabled = true }
+
+[[tasks]]
 name = "信用商店"
 type = "Mall"
 params = { shopping = true, buy_first = ["固源岩", "招聘许可", "技巧概要", "家具"], blacklist = ["碳", "加急许可"], force_shopping_if_credit_full = true, reserve_max_credit = true }
