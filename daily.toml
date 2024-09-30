@@ -25,11 +25,6 @@ type = "Fight"
 params = { stage = "1-7", client_type = "Official", expiring_medicine = 999 }
 
 [[tasks]]
-name = "基建换班"
-type = "Infrast"
-params = { mode = 0, facility = ["Dorm", "Office", "Mfg", "Trade", "Control", "Power", "Reception"], drones = "Money", threshold = 0.3, replenish = true, dorm_notstationed_enabled = true }
-
-[[tasks]]
 name = "关闭游戏"
 type = "CloseDown"
 
@@ -37,6 +32,11 @@ type = "CloseDown"
 name = "开始唤醒"
 type = "StartUp"
 params = { client_type = "Official", start_game_enabled = true }
+
+[[tasks]]
+name = "基建换班"
+type = "Infrast"
+params = { mode = 0, facility = ["Dorm", "Office", "Mfg", "Trade", "Control", "Power", "Reception"], drones = "Money", threshold = 0.3, replenish = true, dorm_notstationed_enabled = true }
 
 [[tasks]]
 name = "信用商店"
