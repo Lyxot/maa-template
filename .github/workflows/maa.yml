@@ -182,6 +182,8 @@ jobs:
           docker commit redroid ark
           docker rm redroid
           docker rmi redroid/redroid:11.0.0-latest 2>/dev/null || :
+          pip3 install docker-squash
+          docker-squash -t ark ark
           docker save ark -o ~/ark.tar
           docker rmi ark
           cd ~
