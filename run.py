@@ -5,7 +5,7 @@ import pathlib
 
 client_type = os.getenv("CLIENT_TYPE")
 
-config = toml.load('daily.toml')
+config = toml.load(str(pathlib.Path.home())+'/.config/maa/tasks/daily.toml')
 for i in config['tasks']:
     if 'params' in i:
         if 'client_type' in i['params']:

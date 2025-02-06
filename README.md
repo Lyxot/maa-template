@@ -3,7 +3,7 @@
 ## 使用方法
 ***如果你担心账号泄露，不要使用！有关账号泄露的问题概不负责，详见注意事项1***
 1. fork 这个仓库，进入 fork 后的仓库
-2. 修改`.github/workflows/maa.yml`的 [L27](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L27)、[L29](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L29)
+2. 修改`.github/workflows/maa.yml`的 [L23](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L23)、[L25](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L25)
     | 参数 | 描述 | 选项 |
     | --- | --- | --- |
     | `CLIENT_TYPE` | 客户端版本 | `Official` `Bilibili` |
@@ -18,11 +18,11 @@
 5. 运行到`Setup Debug Session`时，在 log 中找到 runner 的 ssh 连接地址，ssh 连接到 runner，按 q 进入终端
 6. 运行到`Manual update`时，浏览器连接到 frp 隧道，点击 `H264 Converter` 进行远程控制
 7. 打开游戏，下载选择基础资源，不下载语音包，登录账号，设置低画质30帧，进剿灭页面关掉剿灭的提示
-8. 在 ssh 终端中执行 `./create_flag` 和 `exit`，等待 workflow 运行完毕
-9. 修改`daily.toml`，[配置文档](https://github.com/MaaAssistantArknights/maa-cli/blob/main/maa-cli/docs/zh-CN/config.md)，不会改就使用示例即可
+8. 在 ssh 终端中执行 `create_flag && exit`，等待 workflow 运行完毕
+9. 修改`.config/maa/tasks/daily.toml`，[配置文档](https://github.com/MaaAssistantArknights/maa-cli/blob/main/crates/maa-cli/docs/zh-CN/config.md)，不会改就使用示例即可
 10. 进入 Actions，选择 MAA，点击 Run workflow，勾选`Run`，点击 Run workflow
 11. 同步骤6，观察 MAA 是否正常运行
-12. 修改`.github/workflows/maa.yml`的 [L23](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L23) 来配置定时运行，按照UTC时区配置，示例中的为每天4点和16点运行
+12. 修改`.github/workflows/maa.yml`的 [L18](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L18) 来配置定时运行，按照UTC时区配置，示例中的为每天4点和16点运行
 13. 给这个仓库点个 star
 14. 快乐自动化
 

@@ -13,11 +13,6 @@ on:
         required: false
         default: false
         type: boolean
-      enable_debug:
-        description: 'Enable debug session'
-        required: false
-        default: false
-        type: boolean
   schedule:
     # 定时运行，按照UTC时区配置，示例为每天4点和16点运行
     - cron: '0 8,20 * * *'
@@ -32,114 +27,91 @@ env:
 jobs:
   maa:
     name: MAA
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
+      - name: Prepare for environment
+        run: |
+          df -h
+          sudo apt update
+          sudo apt install linux-modules-extra-`uname -r` python3-requests python3-toml adb -y
+          sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
+          pip3 install docker-squash
+
       - uses: actions/checkout@v4
 
-      - name: Query cache key
-        id: cache-key
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh extension install actions/gh-actions-cache
-          echo "key=$(gh actions-cache list --sort created-at --key redroid --limit 1 | cut -f 1)" | tee -a $GITHUB_OUTPUT
-
       - name: Restore container
-        if: steps.cache-key.outputs.key != '' && github.event.inputs.manual_update != 'true'
+        if: github.event.inputs.manual_update != 'true'
         uses: actions/cache/restore@v4
         id: container-restore
         with:
           path: |
-            ~/ark.tar
-            ~/data.tar
-          key: ${{ steps.cache-key.outputs.key }}
+            ./ark.tar
+            ./data.tar
+          key: redroid-
 
       - name: Setup Debug Session
-        if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true' || github.event.inputs.enable_debug == 'true'
+        if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true'
         uses: mxschmitt/action-tmate@v3
         with:
           detached: true
 
       - name: Setup redroid
+        env:
+          MAX_ATTEMPTS: 60
         run: |
-          sudo apt install linux-modules-extra-`uname -r` adb -y
-          sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
-          if [[ -f ~/ark.tar ]] && [[ -f ~/data.tar ]];then
-            docker load -i ~/ark.tar
-            rm ~/ark.tar
+          if [[ -f ./ark.tar ]] && [[ -f ./data.tar ]];then
+            echo "Start loading container"
+            docker load -i ./ark.tar
+            sudo rm ./ark.tar
             export IMAGETAG=ark
-            echo "Loaded container"
-            cd ~
-            sudo tar -xf ~/data.tar
-            sudo rm ~/data.tar
+            sudo tar -xf ./data.tar
+            sudo rm ./data.tar
           fi
-          cd ${{ github.workspace }}
           docker compose up -d
-          declare -i i=0
-          declare -i j=0
-          while true;do
-            adb kill-server
-            adb connect 127.0.0.1:5555 2>/dev/null || :
-            if [[ $(adb -s 127.0.0.1:5555 shell getprop sys.boot_completed 2>/dev/null || :) == "1" ]];then
-              break
-            else
-              let i=i+1
-              if [[ $i -gt 10 ]];then
-                docker compose down
-                docker compose up -d
-                i=0
-                let j=j+1
-                echo "Restart container"
-              fi
-              if [[ $j -gt 5 ]];then
-                echo "Failed to start container"
-                exit 1
-              fi
-            fi
-          done
 
-      - name: Setup Frp
-        if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true' || github.event_name != 'schedule'
+          export attempt=0
+          while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
+            adb kill-server && adb connect 127.0.0.1:5555
+            if [[ $(adb -s 127.0.0.1:5555 shell getprop sys.boot_completed 2>/dev/null || :) == "1" ]];then break;fi
+            export attempt=$((attempt + 1))
+            echo "Waiting for container to be ready (attempt $attempt/$MAX_ATTEMPTS)..." && sleep 1
+          done
+          if [[ $attempt -eq $MAX_ATTEMPTS ]]; then
+            echo "Container failed to become ready within timeout" && exit 1
+          else
+            echo "Container is ready"
+          fi
+
+      - name: Setup Frp && ws-scrcpy
+        if: github.event_name != 'schedule'
         run: |
           docker run -d --net host --name sakurafrp natfrp/frpc -f ${{ secrets.FRPC_TOKEN }}
-
-      - name: Setup ws-scrcpy
-        if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true' || github.event_name != 'schedule'
-        run: |
-          docker run --name ws-scrcpy -d --add-host=host.docker.internal:host-gateway -p 8000:8000 scavin/ws-scrcpy
+          docker run --name ws-scrcpy -d --add-host=host.docker.internal:host-gateway -p 8000:8000 haris132/ws-scrcpy
           docker exec ws-scrcpy adb connect host.docker.internal:5555
 
       - name: Install MAA
         run: |
-          wget https://github.com/MaaAssistantArknights/maa-cli/releases/latest/download/maa_cli-x86_64-unknown-linux-gnu.tar.gz
-          tar -vzxf maa_cli-x86_64-unknown-linux-gnu.tar.gz
-          mv maa_cli-x86_64-unknown-linux-gnu/maa /usr/local/bin
+          wget https://github.com/MaaAssistantArknights/maa-cli/releases/latest/download/maa_cli-aarch64-unknown-linux-gnu.tar.gz
+          tar -vzxf maa_cli-aarch64-unknown-linux-gnu.tar.gz
+          mv maa_cli-aarch64-unknown-linux-gnu/maa /usr/local/bin
+          rm -rf maa_cli-aarch64-unknown-linux-gnu maa_cli-aarch64-unknown-linux-gnu.tar.gz
           chmod +x /usr/local/bin/maa
-          mkdir ~/.config -p
-          mkdir ~/.config/maa -p
-          mkdir ~/.config/maa/profiles -p
-          mkdir ~/.config/maa/tasks -p
-          cp cli.toml ~/.config/maa
-          cp default.toml ~/.config/maa/profiles
+          cp -r .config ~
           maa install
-          maa self update
           maa update
-          rm -rf maa_cli-x86_64-unknown-linux-gnu.tar.gz maa_cli-x86_64-unknown-linux-gnu
 
       - name: Install game
         run: |
-          sudo apt install python3-requests -y
           python3 download.py ${{ env.CLIENT_TYPE }}
-          adb kill-server
-          adb connect 127.0.0.1:5555
-          adb devices
-          adb -s 127.0.0.1:5555 install arknights.apk
-          rm arknights.apk
+          adb kill-server && adb connect 127.0.0.1:5555 && adb devices
+          adb -s 127.0.0.1:5555 install arknights.apk && rm arknights.apk
 
       - name: Manual update
-        if: github.event.inputs.manual_update == 'true' || steps.container-restore.outputs.cache-hit != 'true'
-        timeout-minutes: 30
+        if: github.event.inputs.manual_update == 'true'
+        timeout-minutes: 60
         run: |
+          cp create_flag /usr/local/bin
+          chmod +x /usr/local/bin/create_flag
           while true;do
             if [[ -f ~/flag_update_completed ]];then
               break
@@ -148,15 +120,13 @@ jobs:
           done
 
       - name: Run MAA
-        if: ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true'
+        if: github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true'
         env:
           MAA_LOG: trace
-        run: |
-          sudo apt install python3-toml -y
-          python3 run.py
+        run: python3 run.py
 
       - name: Send message
-        if:  ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && steps.container-restore.outputs.cache-hit == 'true' && env.SEND_MSG == 'true'
+        if:  ( github.event_name == 'schedule' || github.event.inputs.confirm_run == 'true' ) && env.SEND_MSG == 'true'
         env:
           ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
           QQID: ${{ secrets.QQID }}
@@ -174,30 +144,30 @@ jobs:
 
       - name: Export container
         run: |
-          adb kill-server
-          adb connect 127.0.0.1:5555
-          adb devices
+          adb kill-server && adb connect 127.0.0.1:5555 && adb devices
           adb -s 127.0.0.1:5555 shell cmd package uninstall -k com.hypergryph.arknights
           docker stop redroid
           docker commit redroid ark
           docker rm redroid
           docker rmi redroid/redroid:11.0.0-latest 2>/dev/null || :
-          pip3 install docker-squash
+          echo "Start squashing container"
           docker-squash -t ark ark
-          docker save ark -o ~/ark.tar
+          echo "Start saving container"
+          docker save ark -o ./ark.tar
+          echo "Saved container"
           docker rmi ark
-          cd ~
-          sudo tar -cpf ~/data.tar data
+          echo "Start saving data"
+          sudo tar -cpf ./data.tar data
           sudo rm -rf data
 
       - name: Generate cache key
-        run: du ~/ark.tar ~/data.tar | cut -f 1 | tee container.size
+        run: du ./ark.tar ./data.tar | cut -f 1 | tee container.size
 
       - name: Upload container
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
           path: |
-            ~/ark.tar
-            ~/data.tar
+            ./ark.tar
+            ./data.tar
           key: redroid-${{ hashFiles('container.size') }}
