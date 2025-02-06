@@ -17,7 +17,7 @@
 4. 进入仓库的 Actions，选择 MAA，点击 Run workflow，勾选`Update manually`，点击 Run workflow
 5. 运行到`Setup Debug Session`时，在 log 中找到 runner 的 ssh 连接地址，ssh 连接到 runner，按 q 进入终端
 6. 运行到`Manual update`时，浏览器连接到 frp 隧道，点击 `H264 Converter` 进行远程控制
-7. 打开游戏，下载选择基础资源，不下载语音包，登录账号，设置低画质30帧，进剿灭页面关掉剿灭的提示
+7. 打开游戏，下载选择基础资源，不下载语音包，登录账号，设置低画质30帧，关掉退出基建提示，进剿灭页面关掉剿灭的提示
 8. 在 ssh 终端中执行 `create_flag && exit`，等待 workflow 运行完毕
 9. 修改`.config/maa/tasks/daily.toml`，[配置文档](https://github.com/MaaAssistantArknights/maa-cli/blob/main/crates/maa-cli/docs/zh-CN/config.md)，不会改就使用示例即可
 10. 进入 Actions，选择 MAA，点击 Run workflow，勾选`Run`，点击 Run workflow
@@ -34,5 +34,3 @@
 5. 要使用内网穿透才能登录游戏，示例中使用了 Sakura Frp，有能力的自己改
 6. 示例中使用 OneBot11 接口给 QQ 发送简报，不需要的可以将`SEND_MSG`配置为`false`，有能力的可以自己改
 7. 如果你自己修改了注意事项 5 或 6，确保你的 token、url 等隐私数据存储在 secrets 中，且无法在任何 commit 中找到其明文
-
-目前有莫名其妙在基建/信用商店闪退的问题，因此在`daily.toml`中多加了一次重启游戏

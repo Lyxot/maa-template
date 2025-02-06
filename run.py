@@ -25,7 +25,7 @@ with process.stderr:
             else:
                 flag_trace = False
         if not flag_trace:
-            os.system('echo "' + line + '"')
+            os.system('echo -n "' + line + '"')
 process.wait()
 output, error = process.communicate()
 process.kill()
