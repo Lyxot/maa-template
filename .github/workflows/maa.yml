@@ -22,7 +22,7 @@ env:
   # 客户端版本
   CLIENT_TYPE: Official
   # 是否在结束后发送简报到QQ
-  SEND_MSG: true
+  SEND_MSG: false
 
 jobs:
   maa:
