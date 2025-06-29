@@ -2,7 +2,7 @@
 
 ## 使用方法
 ***如果你担心账号泄露，不要使用！有关账号泄露的问题概不负责，详见注意事项1***
-1. fork 这个仓库，进入 fork 后的仓库
+1. Use this template 创建新仓库 (或者 fork 这个仓库)
 2. 修改`.github/workflows/maa.yml`的 [L23](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L23)、[L25](https://github.com/Lyxot/maa-template/blob/main/.github/workflows/maa.yml#L25)
     | 参数 | 描述 | 选项 |
     | --- | --- | --- |
