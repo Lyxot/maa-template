@@ -8,3 +8,6 @@ auto_update = false
 
 [resource.remote]
 url = "https://github.com/MaaAssistantArknights/MaaResource.git"
+
+[cli]
+channel = "Beta"

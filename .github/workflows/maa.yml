@@ -98,6 +98,7 @@ jobs:
           cp -r .config ~
           maa install
           maa update
+          maa self update
 
       - name: Install game
         run: |
