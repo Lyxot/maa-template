@@ -90,15 +90,14 @@ jobs:
 
       - name: Install MAA
         run: |
-          wget https://github.com/MaaAssistantArknights/maa-cli/releases/latest/download/maa_cli-aarch64-unknown-linux-gnu.tar.gz
-          tar -vzxf maa_cli-aarch64-unknown-linux-gnu.tar.gz
-          mv maa_cli-aarch64-unknown-linux-gnu/maa /usr/local/bin
-          rm -rf maa_cli-aarch64-unknown-linux-gnu maa_cli-aarch64-unknown-linux-gnu.tar.gz
+          wget https://github.com/MaaAssistantArknights/maa-cli/releases/download/v0.6.0/maa_cli-v0.6.0-aarch64-unknown-linux-gnu.tar.gz
+          tar -vzxf maa_cli-v0.6.0-aarch64-unknown-linux-gnu.tar.gz
+          mv maa /usr/local/bin
           chmod +x /usr/local/bin/maa
           cp -r .config ~
+          maa self update
           maa install
           maa update
-          maa self update
 
       - name: Install game
         run: |
