@@ -21,4 +21,4 @@ services:
       - ro.build.product=zeus
       - ro.config.low_ram=true
     container_name: redroid
-    image: ${IMAGETAG:-redroid/redroid:11.0.0-latest}
+    image: ${IMAGETAG:-redroid/redroid:13.0.0-latest}
